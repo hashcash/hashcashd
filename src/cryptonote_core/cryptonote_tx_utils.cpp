@@ -634,6 +634,7 @@ namespace cryptonote
     construct_miner_tx(0, 0, 0, 0, 0, ac, bl.miner_tx); // zero fee in genesis
     blobdata txb = tx_to_blob(bl.miner_tx);
     std::string hex_tx_represent = string_tools::buff_to_hex_nodelimer(txb);
+    LOG_ERROR(hex_tx_represent);
 
     std::string genesis_coinbase_tx_hex = config::GENESIS_TX;
 

@@ -373,22 +373,22 @@ namespace nodetool
     std::set<std::string> full_addrs;
     if (testnet)
     {
-      full_addrs.insert("212.83.175.67:28080");
+      /* full_addrs.insert("212.83.175.67:28080");
       full_addrs.insert("5.9.100.248:28080");
       full_addrs.insert("163.172.182.165:28080");
       full_addrs.insert("195.154.123.123:28080");
-      full_addrs.insert("212.83.172.165:28080");
+      full_addrs.insert("212.83.172.165:28080"); */
     }
     else
     {
-      full_addrs.insert("107.152.130.98:18080");
+      /* full_addrs.insert("107.152.130.98:18080");
       full_addrs.insert("212.83.175.67:18080");
       full_addrs.insert("5.9.100.248:18080");
       full_addrs.insert("163.172.182.165:18080");
       full_addrs.insert("161.67.132.39:18080");
       full_addrs.insert("198.74.231.92:18080");
       full_addrs.insert("195.154.123.123:28080");
-      full_addrs.insert("212.83.172.165:28080");
+      full_addrs.insert("212.83.172.165:28080"); */
     }
     return full_addrs;
   }
@@ -1561,7 +1561,7 @@ namespace nodetool
           LOG_WARNING_CC(context_, "COMMAND_REQUEST_SUPPORT_FLAGS invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
           return;
         }
-        
+
         f(context_, rsp.support_flags);
       },
       P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT
@@ -1654,7 +1654,7 @@ namespace nodetool
         LOG_DEBUG_CC(context, "PING SUCCESS " << context.m_remote_address.host_str() << ":" << port_l);
       });
     }
-    
+
     try_get_support_flags(context, [](p2p_connection_context& flags_context, const uint32_t& support_flags) 
     {
       flags_context.support_flags = support_flags;
