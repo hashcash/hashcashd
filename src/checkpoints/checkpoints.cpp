@@ -168,7 +168,7 @@ namespace cryptonote
       return true;
     } */
 
-    // ADD_CHECKPOINT(1,     "23addcf40240fcde4e45d47b0540aa0b14e16c20636728eded6a000c1986e8e5");
+    ADD_CHECKPOINT(1,     "2dac40e865db3f697487db01aef3ee485c1ccb709e4ae2b9a4f2bdbab6957746");
     /*ADD_CHECKPOINT(10,    "c0e3b387e47042f72d8ccdca88071ff96bff1ac7cde09ae113dbb7ad3fe92381");
     ADD_CHECKPOINT(100,   "ac3e11ca545e57c49fca2b4e8c48c03c23be047c43e471e1394528b1f9f80b2d");
     ADD_CHECKPOINT(1000,  "5acfc45acffd2b2e7345caf42fa02308c5793f15ec33946e969e829f40b03876");
