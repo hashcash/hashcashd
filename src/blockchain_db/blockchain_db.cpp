@@ -356,6 +356,7 @@ void BlockchainDB::fixup()
     return;
   }
 
+  /*
   // There was a bug that would cause key images for transactions without
   // any outputs to not be added to the spent key image set. There are two
   // instances of such transactions, in blocks 202612 and 685498.
@@ -929,8 +930,10 @@ void BlockchainDB::fixup()
         }
       }
     }
+
   }
   batch_stop();
+  */
 }
 
 }  // namespace cryptonote

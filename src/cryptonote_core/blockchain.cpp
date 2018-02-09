@@ -80,9 +80,12 @@ DISABLE_VS_WARNINGS(4267)
 
 #define MERROR_VER(x) MCERROR("verify", x)
 
-// used to overestimate the block reward when estimating a per kB to use
-#define BLOCK_REWARD_OVERESTIMATE (10 * 1000000000000)
+static auto *mainnet_hard_forks = config::hard_forks;
+static const uint64_t mainnet_hard_fork_version_1_till = config::hard_fork_version_1_till;
+static auto *testnet_hard_forks = config::hard_forks;
+static const uint64_t testnet_hard_fork_version_1_till = config::testnet::hard_fork_version_1_till;
 
+/*
 static const struct {
   uint8_t version;
   uint64_t height;
@@ -130,6 +133,7 @@ static const struct {
   { 7, 1057028, 0, 1512211236 },
 };
 static const uint64_t testnet_hard_fork_version_1_till = 624633;
+*/
 
 //------------------------------------------------------------------
 Blockchain::Blockchain(tx_memory_pool& tx_pool) :
