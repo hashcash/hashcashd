@@ -531,7 +531,9 @@ void cn_slow_hash(const void *data, size_t length, char *hash)
     size_t i, j;
     uint64_t *p = NULL;
     oaes_ctx *aes_ctx = NULL;
+    /*
     int useAes = !force_software_aes() && check_aes_hw();
+    */
 
     static void (*const extra_hashes[4])(const void *, size_t, char *) =
     {
@@ -551,6 +553,7 @@ void cn_slow_hash(const void *data, size_t length, char *hash)
      * the 2MB large random access buffer.
      */
 
+    /*
     if(useAes)
     {
         aes_expand_key(state.hs.b, expandedKey);
@@ -562,6 +565,7 @@ void cn_slow_hash(const void *data, size_t length, char *hash)
     }
     else
     {
+    */
         aes_ctx = (oaes_ctx *) oaes_alloc();
         oaes_key_import_data(aes_ctx, state.hs.b, AES_KEY_SIZE);
         for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
@@ -571,7 +575,9 @@ void cn_slow_hash(const void *data, size_t length, char *hash)
 
             memcpy(&hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
         }
+    /*
     }
+    */
 
     U64(a)[0] = U64(&state.k[0])[0] ^ U64(&state.k[32])[0];
     U64(a)[1] = U64(&state.k[0])[1] ^ U64(&state.k[32])[1];
@@ -586,6 +592,7 @@ void cn_slow_hash(const void *data, size_t length, char *hash)
     _b = _mm_load_si128(R128(b));
     // Two independent versions, one with AES, one without, to ensure that
     // the useAes test is only performed once, not every iteration.
+    /*
     if(useAes)
     {
         for(i = 0; i < ITER / 2; i++)
@@ -597,19 +604,24 @@ void cn_slow_hash(const void *data, size_t length, char *hash)
     }
     else
     {
+    */
         for(i = 0; i < ITER / 2; i++)
         {
             pre_aes();
             aesb_single_round((uint8_t *) &_c, (uint8_t *) &_c, (uint8_t *) &_a);
             post_aes();
         }
+    /*
     }
+    */
 
     /* CryptoNight Step 4:  Sequentially pass through the mixing buffer and use 10 rounds
      * of AES encryption to mix the random data back into the 'text' buffer.  'text'
      * was originally created with the output of Keccak1600. */
 
     memcpy(text, state.init, INIT_SIZE_BYTE);
+
+    /*
     if(useAes)
     {
         aes_expand_key(&state.hs.b[32], expandedKey);
@@ -621,6 +633,7 @@ void cn_slow_hash(const void *data, size_t length, char *hash)
     }
     else
     {
+    */
         oaes_key_import_data(aes_ctx, &state.hs.b[32], AES_KEY_SIZE);
         for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
         {
@@ -631,7 +644,9 @@ void cn_slow_hash(const void *data, size_t length, char *hash)
             }
         }
         oaes_free((OAES_CTX **) &aes_ctx);
+    /*
     }
+    */
 
     /* CryptoNight Step 5:  Apply Keccak to the state again, and then
      * use the resulting data to select which of four finalizer
