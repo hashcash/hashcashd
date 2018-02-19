@@ -45,6 +45,8 @@ namespace tools
     MDEBUG("Checking updates for " << buildtag << " " << software);
 
     // All four MoneroPulse domains have DNSSEC on and valid
+    // @TODO should update?
+    return false;
     static const std::vector<std::string> dns_urls = {
         /* "updates.moneropulse.org",
         "updates.moneropulse.net",
