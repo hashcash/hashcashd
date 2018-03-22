@@ -366,7 +366,10 @@ void BlockchainDB::fixup()
   static const char * const mainnet_genesis_hex = "418015bb9ae982a1975da7d79277c2705727a56894ba0fb246adaabb1f4632e3";
   crypto::hash mainnet_genesis_hash;
   epee::string_tools::hex_to_pod(mainnet_genesis_hex, mainnet_genesis_hash );
+  */
+  // @TODO It appears code relies on this line to be executed during startup =(
   set_batch_transactions(true);
+  /*
   batch_start();
 
   if (get_block_hash_from_height(0) == mainnet_genesis_hash)
