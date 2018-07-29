@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -197,6 +197,12 @@ t_command_server::t_command_server(
     , "Set the <max_number> of out peers."
     );
     m_command_lookup.set_handler(
+      "in_peers"
+    , std::bind(&t_command_parser_executor::in_peers, &m_parser, p::_1)
+    , "in_peers <max_number>"
+    , "Set the <max_number> of in peers."
+    );
+    m_command_lookup.set_handler(
       "start_save_graph"
     , std::bind(&t_command_parser_executor::start_save_graph, &m_parser, p::_1)
     , "Start saving data for dr monero."
@@ -249,6 +255,7 @@ t_command_server::t_command_server(
     m_command_lookup.set_handler(
       "alt_chain_info"
     , std::bind(&t_command_parser_executor::alt_chain_info, &m_parser, p::_1)
+    , "alt_chain_info [blockhash]"
     , "Print the information about alternative chains."
     );
     m_command_lookup.set_handler(
@@ -273,6 +280,11 @@ t_command_server::t_command_server(
       "sync_info"
     , std::bind(&t_command_parser_executor::sync_info, &m_parser, p::_1)
     , "Print information about the blockchain sync state."
+    );
+    m_command_lookup.set_handler(
+      "version"
+    , std::bind(&t_command_parser_executor::version, &m_parser, p::_1)
+    , "Print version information."
     );
 }
 

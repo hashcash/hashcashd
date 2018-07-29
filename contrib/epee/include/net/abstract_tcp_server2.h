@@ -119,6 +119,7 @@ namespace net_utils
     //----------------- i_service_endpoint ---------------------
     virtual bool do_send(const void* ptr, size_t cb); ///< (see do_send from i_service_endpoint)
     virtual bool do_send_chunk(const void* ptr, size_t cb); ///< will send (or queue) a part of data
+    virtual bool send_done();
     virtual bool close();
     virtual bool call_run_once_service_io();
     virtual bool request_callback();
@@ -134,6 +135,14 @@ namespace net_utils
 
     /// Handle completion of a write operation.
     void handle_write(const boost::system::error_code& e, size_t cb);
+
+    /// reset connection timeout timer and callback
+    void reset_timer(boost::posix_time::milliseconds ms, bool add);
+    boost::posix_time::milliseconds get_default_timeout();
+    boost::posix_time::milliseconds get_timeout_from_bytes_read(size_t bytes);
+
+    /// host connection count tracking
+    unsigned int host_count(const std::string &host, int delta = 0);
 
     /// Buffer for incoming data.
     boost::array<char, 8192> buffer_;
@@ -157,6 +166,11 @@ namespace net_utils
     network_throttle m_throttle_speed_out;
     boost::mutex m_throttle_speed_in_mutex;
     boost::mutex m_throttle_speed_out_mutex;
+
+    boost::asio::deadline_timer m_timer;
+    bool m_local;
+    bool m_ready_to_close;
+    std::string m_host;
 
 	public:
 			void setRpcStation();
@@ -207,7 +221,7 @@ namespace net_utils
 
     bool connect(const std::string& adr, const std::string& port, uint32_t conn_timeot, t_connection_context& cn, const std::string& bind_ip = "0.0.0.0");
     template<class t_callback>
-    bool connect_async(const std::string& adr, const std::string& port, uint32_t conn_timeot, t_callback cb, const std::string& bind_ip = "0.0.0.0");
+    bool connect_async(const std::string& adr, const std::string& port, uint32_t conn_timeot, const t_callback &cb, const std::string& bind_ip = "0.0.0.0");
 
     typename t_protocol_handler::config_type& get_config_object(){return m_config;}
 

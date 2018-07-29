@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2017, The Monero Project
+# Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
 #
@@ -33,6 +33,7 @@ include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(CheckLinkerFlag)
 include(CheckLibraryExists)
+include(CheckFunctionExists)
 
 if (IOS)
     INCLUDE(CmakeLists_IOS.txt)
@@ -80,6 +81,22 @@ function (add_linker_flag_if_supported flag var)
   endif()
 endfunction()
 
+function (add_definition_if_function_found function var)
+  string(REPLACE "-" "_" supported ${function}_function)
+  check_function_exists(${function} ${supported})
+  if(${${supported}})
+    add_definitions("-D${var}")
+  endif()
+endfunction()
+
+function (add_definition_if_library_exists library function header var)
+  string(REPLACE "-" "_" supported ${function}_library)
+  check_library_exists(${library} ${function} ${header} ${supported})
+  if(${${supported}})
+    add_definitions("-D${var}")
+  endif()
+endfunction()
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
   message(STATUS "Setting default build type: ${CMAKE_BUILD_TYPE}")
@@ -120,9 +137,24 @@ endif()
 
 if(ARCH_ID STREQUAL "ppc64le")
   set(PPC64LE 1)
+  set(PPC64   0)
+  set(PPC     0)
+
 endif()
 
-if(WIN32 OR ARM)
+if(ARCH_ID STREQUAL "powerpc64" OR ARCH_ID STREQUAL "ppc64")
+  set(PPC64LE 0)
+  set(PPC64   1)
+  set(PPC     0)
+endif()
+
+if(ARCH_ID STREQUAL "powerpc")
+  set(PPC64LE 0)
+  set(PPC64   0)
+  set(PPC     1)
+endif()
+
+if(WIN32 OR ARM OR PPC64LE OR PPC64 OR PPC)
   set(OPT_FLAGS_RELEASE "-O2")
 else()
   set(OPT_FLAGS_RELEASE "-Ofast")
@@ -219,7 +251,7 @@ endif()
 # elseif(CMAKE_SYSTEM_NAME MATCHES ".*BSDI.*")
 #   set(BSDI TRUE)
 
-include_directories(external/easylogging++ src contrib/epee/include external)
+include_directories(external/rapidjson/include external/easylogging++ src contrib/epee/include external)
 
 if(APPLE)
   include_directories(SYSTEM /usr/include/malloc)
@@ -281,7 +313,7 @@ if(SANITIZE)
 endif()
 
 # Set default blockchain storage location:
-# memory was the default in Cryptonote before Monero implimented LMDB, it still works but is unneccessary.
+# memory was the default in Cryptonote before Monero implemented LMDB, it still works but is unnecessary.
 # set(DATABASE memory)
 set(DATABASE lmdb)
 
@@ -395,6 +427,12 @@ if(STATIC AND NOT IOS)
   endif()
 endif()
 
+find_package(PCSC)
+
+add_definition_if_library_exists(c memset_s "string.h" HAVE_MEMSET_S)
+add_definition_if_library_exists(c explicit_bzero "strings.h" HAVE_EXPLICIT_BZERO)
+add_definition_if_function_found(strptime HAVE_STRPTIME)
+
 add_definitions(-DAUTO_INITIALIZE_EASYLOGGINGPP)
 
 # Generate header for embedded translations
@@ -406,14 +444,6 @@ ExternalProject_Add(generate_translations_header
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/translations")
 
 add_subdirectory(external)
-
-# Final setup for miniupnpc
-if(UPNP_STATIC OR IOS)
-  add_definitions("-DUPNP_STATIC")
-else()
-  add_definitions("-DUPNP_DYNAMIC")
-  include_directories(${UPNP_INCLUDE})
-endif()
 
 # Final setup for libunbound
 include_directories(${UNBOUND_INCLUDE})
@@ -435,6 +465,16 @@ endif()
 include_directories(${LIBUNWIND_INCLUDE})
 link_directories(${LIBUNWIND_LIBRARY_DIRS})
 
+# Final setup for libpcsc
+if (PCSC_FOUND) 
+  message(STATUS "Using PCSC include dir at ${PCSC_INCLUDE_DIR}")
+  add_definitions(-DHAVE_PCSC)
+  include_directories(${PCSC_INCLUDE_DIR})
+  link_directories(${LIBPCSC_LIBRARY_DIRS})
+else (PCSC_FOUND)
+  message(STATUS "Could not find PCSC")
+endif()
+
 if(MSVC)
   add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /FIinline_c.h /D__SSE4_1__")
   # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Dinline=__inline")
@@ -452,7 +492,11 @@ else()
   if(ARCH STREQUAL "default")
     set(ARCH_FLAG "")
   elseif(PPC64LE)
-    set(ARCH_FLAG "-mcpu=${ARCH}")
+    set(ARCH_FLAG "-mcpu=power8")
+  elseif(PPC64)
+    set(ARCH_FLAG "-mcpu=970")
+  elseif(PPC)
+    set(ARCH_FLAG "-mcpu=7400")
   elseif(IOS AND ARCH STREQUAL "arm64")
     message(STATUS "IOS: Changing arch from arm64 to armv8")
     set(ARCH_FLAG "-march=armv8")
@@ -562,12 +606,12 @@ else()
     message(STATUS "AES support explicitly disabled")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNO_AES")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_AES")
-  elseif(NOT ARM AND NOT PPC64LE)
+  elseif(NOT ARM AND NOT PPC64LE AND NOT PPC64 AND NOT PPC)
     message(STATUS "AES support enabled")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
-  elseif(PPC64LE)
-    message(STATUS "AES support not available on ppc64le")
+  elseif(PPC64LE OR PPC64 OR PPC)
+    message(STATUS "AES support not available on POWER")
   elseif(ARM6)
     message(STATUS "AES support not available on ARMv6")
   elseif(ARM7)
@@ -753,7 +797,7 @@ if(STATIC)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-find_package(Boost 1.58 QUIET REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
+find_package(Boost 1.58 QUIET REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options locale)
 
 set(CMAKE_FIND_LIBRARY_SUFFIXES ${OLD_LIB_SUFFIXES})
 if(NOT Boost_FOUND)
@@ -769,7 +813,9 @@ endif()
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 if(MINGW)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wa,-mbig-obj")
   set(EXTRA_LIBRARIES mswsock;ws2_32;iphlpapi)
+  set(ICU_LIBRARIES ${Boost_LOCALE_LIBRARY} icuio icuin icuuc icudt icutu iconv)
 elseif(APPLE OR OPENBSD OR ANDROID)
   set(EXTRA_LIBRARIES "")
 elseif(FREEBSD)
@@ -867,10 +913,3 @@ option(INSTALL_VENDORED_LIBUNBOUND "Install libunbound binary built from source 
 
 
 CHECK_C_COMPILER_FLAG(-std=c11 HAVE_C11)
-
-include(CheckLibraryExists)
-include(CheckFunctionExists)
-
-check_library_exists(c memset_s "string.h" HAVE_MEMSET_S)
-check_library_exists(c explicit_bzero "strings.h" HAVE_EXPLICIT_BZERO)
-check_function_exists(strptime HAVE_STRPTIME)

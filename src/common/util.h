@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -32,6 +32,7 @@
 
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/optional.hpp>
 #include <system_error>
 #include <csignal>
 #include <cstdio>
@@ -88,6 +89,20 @@ namespace tools
 
     std::FILE* handle() const noexcept { return m_handle.get(); }
     const std::string& filename() const noexcept { return m_filename; }
+  };
+
+  class file_locker
+  {
+  public:
+    file_locker(const std::string &filename);
+    ~file_locker();
+    bool locked() const;
+  private:
+#ifdef WIN32
+    HANDLE m_fd;
+#else
+    int m_fd;
+#endif
   };
 
   /*! \brief Returns the default data directory.
@@ -153,8 +168,12 @@ namespace tools
       }
       return r;
 #else
+      static struct sigaction sa;
+      memset(&sa, 0, sizeof(struct sigaction));
+      sa.sa_handler = posix_handler;
+      sa.sa_flags = 0;
       /* Only blocks SIGINT, SIGTERM and SIGPIPE */
-      signal(SIGINT, posix_handler);
+      sigaction(SIGINT, &sa, NULL);
       signal(SIGTERM, posix_handler);
       signal(SIGPIPE, SIG_IGN);
       m_handler = t;
@@ -208,4 +227,10 @@ namespace tools
 
   bool sha256sum(const uint8_t *data, size_t len, crypto::hash &hash);
   bool sha256sum(const std::string &filename, crypto::hash &hash);
+
+  bool is_hdd(const char *path);
+
+  boost::optional<std::pair<uint32_t, uint32_t>> parse_subaddress_lookahead(const std::string& str);
+
+  std::string glob_to_regex(const std::string &val);
 }

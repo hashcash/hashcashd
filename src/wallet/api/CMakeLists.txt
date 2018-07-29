@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2017, The Monero Project
+# Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
 #
@@ -69,6 +69,7 @@ target_link_libraries(wallet_api
     common
     cryptonote_core
     mnemonics
+    ${LMDB_LIBRARY}
     ${Boost_CHRONO_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
@@ -78,6 +79,8 @@ target_link_libraries(wallet_api
   PRIVATE
     ${EXTRA_LIBRARIES})
 
+set_property(TARGET wallet_api PROPERTY EXCLUDE_FROM_ALL TRUE)
+set_property(TARGET obj_wallet_api PROPERTY EXCLUDE_FROM_ALL TRUE)
 
 if(IOS)
     set(lib_folder lib-${ARCH})
@@ -86,4 +89,4 @@ else()
 endif()
 
 install(FILES ${wallet_api_headers}
-    DESTINATION include/wallet)
+    DESTINATION include/wallet/api)

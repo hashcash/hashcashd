@@ -1,4 +1,4 @@
-// Copyright (c) 2017, The Monero Project
+// Copyright (c) 2017-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -47,7 +47,7 @@ static void test(bool wipe)
   if ((intptr_t)quux == foop)
   {
     MDEBUG(std::hex << std::setw(8) << std::setfill('0') << *(uint32_t*)quux);
-    if (wipe) ASSERT_TRUE(memcmp(quux, "bar", 3));
+    if (wipe) { ASSERT_TRUE(memcmp(quux, "bar", 3)); }
   }
   else MWARNING("We did not get the same location, cannot check");
   free(quux);

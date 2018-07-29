@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2017, The Monero Project
+# Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
 #
@@ -32,6 +32,7 @@ target_link_libraries(block_fuzz_tests
     cryptonote_core
     p2p
     epee
+    device
     ${CMAKE_THREAD_LIBS_INIT}
     ${EXTRA_LIBRARIES})
 set_property(TARGET block_fuzz_tests
@@ -44,6 +45,7 @@ target_link_libraries(transaction_fuzz_tests
     cryptonote_core
     p2p
     epee
+    device
     ${CMAKE_THREAD_LIBS_INIT}
     ${EXTRA_LIBRARIES})
 set_property(TARGET transaction_fuzz_tests
@@ -57,6 +59,7 @@ target_link_libraries(signature_fuzz_tests
     cryptonote_core
     p2p
     epee
+    device
     ${CMAKE_THREAD_LIBS_INIT}
     ${EXTRA_LIBRARIES})
 set_property(TARGET signature_fuzz_tests
@@ -70,6 +73,7 @@ target_link_libraries(cold-outputs_fuzz_tests
     cryptonote_core
     p2p
     epee
+    device
     ${CMAKE_THREAD_LIBS_INIT}
     ${EXTRA_LIBRARIES})
 set_property(TARGET cold-outputs_fuzz_tests
@@ -83,6 +87,7 @@ target_link_libraries(cold-transaction_fuzz_tests
     cryptonote_core
     p2p
     epee
+    device
     ${CMAKE_THREAD_LIBS_INIT}
     ${EXTRA_LIBRARIES})
 set_property(TARGET cold-transaction_fuzz_tests
@@ -143,6 +148,7 @@ target_link_libraries(http-client_fuzz_tests
   PRIVATE
     epee
     ${Boost_THREAD_LIBRARY}
+    ${Boost_CHRONO_LIBRARY}
     ${Boost_REGEX_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
@@ -158,6 +164,7 @@ target_link_libraries(levin_fuzz_tests
     common
     epee
     ${Boost_THREAD_LIBRARY}
+    ${Boost_CHRONO_LIBRARY}
     ${Boost_REGEX_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}

@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2017, The Monero Project
+# Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
 #
@@ -38,8 +38,8 @@ source_group(p2p FILES ${P2P})
 monero_add_library(p2p ${P2P})
 target_link_libraries(p2p
   PUBLIC
-    epee
     version
+    cryptonote_core
     ${UPNP_LIBRARIES}
     ${Boost_CHRONO_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}

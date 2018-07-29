@@ -1,4 +1,4 @@
-// Copyright (c) 2017, The Monero Project
+// Copyright (c) 2017-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -158,6 +158,7 @@ namespace
     }
 
     virtual bool close()                              { return true; }
+    virtual bool send_done()                          { return true; }
     virtual bool call_run_once_service_io()           { return true; }
     virtual bool request_callback()                   { return true; }
     virtual boost::asio::io_service& get_io_service() { return m_io_service; }
@@ -299,7 +300,7 @@ int LevinFuzzer::run(const std::string &filename)
 {
   std::string s;
 
-//
+#if 0
   epee::levin::bucket_head2 req_head;
   req_head.m_signature = LEVIN_SIGNATURE;
   req_head.m_cb = 0;
@@ -307,10 +308,11 @@ int LevinFuzzer::run(const std::string &filename)
   req_head.m_command = 2000;
   req_head.m_flags = LEVIN_PACKET_REQUEST;
   req_head.m_protocol_version = LEVIN_PROTOCOL_VER_1;
+  req_head.m_return_code = 0;
   FILE *f=fopen("/tmp/out.levin", "w");
   fwrite(&req_head,sizeof(req_head),1, f);
   fclose(f);
-//
+#endif
   if (!epee::file_io_utils::load_file_to_string(filename, s))
   {
     std::cout << "Error: failed to load file " << filename << std::endl;

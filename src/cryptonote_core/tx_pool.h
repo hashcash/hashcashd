@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -198,11 +198,11 @@ namespace cryptonote
     /**
      * @brief loads pool state (if any) from disk, and initializes pool
      *
-     * @param config_folder folder name where pool state will be
+     * @param max_txpool_size the max size in bytes
      *
      * @return true
      */
-    bool init();
+    bool init(size_t max_txpool_size = 0);
 
     /**
      * @brief attempts to save the transaction pool state to disk
@@ -237,7 +237,7 @@ namespace cryptonote
      * @param include_unrelayed_txes include unrelayed txes in the result
      *
      */
-    void get_transactions(std::list<transaction>& txs, bool include_unrelayed_txes = true) const;
+    void get_transactions(std::vector<transaction>& txs, bool include_unrelayed_txes = true) const;
 
     /**
      * @brief get a list of all transaction hashes in the pool
@@ -324,14 +324,14 @@ namespace cryptonote
      *
      * @return true
      */
-    bool get_relayable_transactions(std::list<std::pair<crypto::hash, cryptonote::blobdata>>& txs) const;
+    bool get_relayable_transactions(std::vector<std::pair<crypto::hash, cryptonote::blobdata>>& txs) const;
 
     /**
      * @brief tell the pool that certain transactions were just relayed
      *
      * @param txs the list of transactions (and their hashes)
      */
-    void set_relayed(const std::list<std::pair<crypto::hash, cryptonote::blobdata>>& txs);
+    void set_relayed(const std::vector<std::pair<crypto::hash, cryptonote::blobdata>>& txs);
 
     /**
      * @brief get the total number of transactions in the pool
@@ -362,6 +362,19 @@ namespace cryptonote
      */
     size_t validate(uint8_t version);
 
+    /**
+     * @brief get the cumulative txpool size in bytes
+     *
+     * @return the cumulative txpool size in bytes
+     */
+    size_t get_txpool_size() const;
+
+    /**
+     * @brief set the max cumulative txpool size in bytes
+     *
+     * @param bytes the max cumulative txpool size in bytes
+     */
+    void set_txpool_max_size(size_t bytes);
 
 #define CURRENT_MEMPOOL_ARCHIVE_VER    11
 #define CURRENT_MEMPOOL_TX_DETAILS_ARCHIVE_VER    12
@@ -486,15 +499,25 @@ namespace cryptonote
      * @brief check if a transaction is a valid candidate for inclusion in a block
      *
      * @param txd the transaction to check (and info about it)
+     * @param txid the txid of the transaction to check
+     * @param txblob the transaction blob to check
+     * @param tx the parsed transaction, if successful
      *
      * @return true if the transaction is good to go, otherwise false
      */
-    bool is_transaction_ready_to_go(txpool_tx_meta_t& txd, transaction &tx) const;
+    bool is_transaction_ready_to_go(txpool_tx_meta_t& txd, const crypto::hash &txid, const cryptonote::blobdata &txblob, transaction &tx) const;
 
     /**
      * @brief mark all transactions double spending the one passed
      */
     void mark_double_spend(const transaction &tx);
+
+    /**
+     * @brief prune lowest fee/byte txes till we're not above bytes
+     *
+     * if bytes is 0, use m_txpool_max_size
+     */
+    void prune(size_t bytes = 0);
 
     //TODO: confirm the below comments and investigate whether or not this
     //      is the desired behavior
@@ -535,6 +558,9 @@ private:
      */
     sorted_tx_container::iterator find_tx_in_sorted_container(const crypto::hash& id) const;
 
+    //! cache/call Blockchain::check_tx_inputs results
+    bool check_tx_inputs(const std::function<cryptonote::transaction&(void)> &get_tx, const crypto::hash &txid, uint64_t &max_used_block_height, crypto::hash &max_used_block_id, tx_verification_context &tvc, bool kept_by_block = false) const;
+
     //! transactions which are unlikely to be included in blocks
     /*! These transactions are kept in RAM in case they *are* included
      *  in a block eventually, but this container is not saved to disk.
@@ -542,6 +568,11 @@ private:
     std::unordered_set<crypto::hash> m_timed_out_transactions;
 
     Blockchain& m_blockchain;  //!< reference to the Blockchain object
+
+    size_t m_txpool_max_size;
+    size_t m_txpool_size;
+
+    mutable std::unordered_map<crypto::hash, std::tuple<bool, tx_verification_context, uint64_t, crypto::hash>> m_input_cache;
   };
 }
 
