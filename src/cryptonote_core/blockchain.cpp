@@ -80,9 +80,10 @@ DISABLE_VS_WARNINGS(4267)
 
 #define MERROR_VER(x) MCERROR("verify", x)
 
-static auto *mainnet_hard_forks = config::hard_forks;
+/*static auto *mainnet_hard_forks = config::hard_forks;*/
+static const std::vector<struct config::HardForks> mainnet_hard_forks = config::hard_forks;
 static const uint64_t mainnet_hard_fork_version_1_till = config::hard_fork_version_1_till;
-static auto *testnet_hard_forks = config::hard_forks;
+static const std::vector<struct config::HardForks> testnet_hard_forks = config::hard_forks;
 static const uint64_t testnet_hard_fork_version_1_till = config::testnet::hard_fork_version_1_till;
 
 /*
