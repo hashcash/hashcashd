@@ -38,7 +38,7 @@
 
 #define CRYPTONOTE_MAX_BLOCK_NUMBER                     ((uint64_t)(-1))
 #define CRYPTONOTE_MAX_BLOCK_SIZE                       500000000  // block header blob limit, never used!
-#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE	196608 //size of block (bytes) that is the maximum that miners will produce
+#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE      196608 //size of block (bytes) that is the maximum that miners will produce
 #define CRYPTONOTE_MAX_TX_SIZE                          1000000000
 #define CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER          0
 #define CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW            10
@@ -65,10 +65,10 @@
 #define COIN                                            ((uint64_t)100) // pow(10, 2)
 
 #define FEE_PER_KB_OLD                                  ((uint64_t)1) // pow(10, 10)
-#define FEE_PER_KB                                      ((uint64_t)1) // 2 * pow(10, 9)
+#define FEE_PER_KB                                      ((uint64_t)10) // 2 * pow(10, 9)
 #define DYNAMIC_FEE_PER_KB_BASE_FEE                     ((uint64_t)2) // 2 * pow(10,9)
-#define DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD            ((uint64_t)1) // 10 * pow(10,12)
-#define DYNAMIC_FEE_PER_KB_BASE_FEE_V5                  ((uint64_t)2000000000 * (uint64_t)CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2 / CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V5)
+#define DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD            ((uint64_t)1000000000) // 10 * pow(10,12)
+#define DYNAMIC_FEE_PER_KB_BASE_FEE_V5                  ((uint64_t)2) // ((uint64_t)2 * (uint64_t)CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2 / CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V5)
 
 #define ORPHANED_BLOCKS_MAX_COUNT                       100
 
@@ -136,13 +136,55 @@
 #define HF_VERSION_MIN_MIXIN_6                  7
 #define HF_VERSION_ENFORCE_RCT                  6
 
-#define PER_KB_FEE_QUANTIZATION_DECIMALS        8
+#define PER_KB_FEE_QUANTIZATION_DECIMALS        2
 
 #define HASH_OF_HASHES_STEP                     256
 
 // used to overestimate the block reward when estimating a per kB to use
 #define BLOCK_REWARD_OVERESTIMATE (10 * 1000000000000)
 #define DEFAULT_TXPOOL_MAX_SIZE                 648000000ull // 3 days at 300000, in bytes
+
+#define HARD_FORK_V2 28136
+#define HARD_FORK_V3 28137
+#define HARD_FORK_V4 28138
+#define HARD_FORK_V5 28139
+#define HARD_FORK_V6 28130
+#define HARD_FORK_V7 28141
+#define HARD_FORK_TILL_V1 HARD_FORK_V2 - 1
+
+#define HARD_FORK_TIME_V2 1442763710
+#define HARD_FORK_TIME_V3 1458558528
+#define HARD_FORK_TIME_V4 1483574400
+#define HARD_FORK_TIME_V5 1489520158
+#define HARD_FORK_TIME_V6 1503046577
+#define HARD_FORK_TIME_V7 1521303150
+
+/*
+Following struct is used in blockchain.cpp for hardforks list:
+
+static const struct {
+  uint8_t version;
+  uint64_t height;
+  uint8_t threshold;
+  time_t time;
+}
+*/
+
+#define MAINNET_HARD_FORKS { \
+  { 1, 1, 0, 1341378000 }, \
+  { 2, HARD_FORK_V2, 0, HARD_FORK_TIME_V2 }, \
+  { 3, HARD_FORK_V3, 0, HARD_FORK_TIME_V3 }, \
+  { 4, HARD_FORK_V4, 0, HARD_FORK_TIME_V4 }, \
+  { 5, HARD_FORK_V5, 0, HARD_FORK_TIME_V5 }, \
+  { 6, HARD_FORK_V6, 0, HARD_FORK_TIME_V6 }, \
+  { 7, HARD_FORK_V7, 0, HARD_FORK_TIME_V7 }, \
+}
+  /*
+  */
+
+#define TESTNET_HARD_FORKS { \
+  { 1, 1, 0, 1341378000 }, \
+}
 
 // New constants are intended to go here
 namespace config
@@ -165,19 +207,7 @@ namespace config
   std::string const GENESIS_TX = "010a01ff000a05029b2e4c0281c0b02e7c53291a94d1d0cbff8883f8024f5142ee494ffbbd0880715a022a74a3c4c36d32e95633d44ba9a7b8188297b2ac91afecab826b86fabaa70916c8010252d128bc9913d5ee8b702c37609917c2357b2f587e5de5622348a3acd718e5d6d83602b8ed916c56b3a99c9cdf22c7be7ec4e85587e5d40bc46bf6995313c288ad841ee0d403021b452b4ac6c6419e06181f8c9f0734bd5bb132d8b75b44bbcd07dd8f553acba6a0f73602b10ba13e303cbe9abf7d5d44f1d417727abcc14903a74e071abd652ce1bf76dd8092f4010205e440069d10646f1bbfaeee88a2db218017941c5fa7280849126d2372fc64348095f52a029cad2882bba92fb7ecc8136475dae03169839eee05ff3ee3232d0136712f08b78084af5f02c574420256922b0783196e42c98156814e61d9ffa87c1262089be1d42e5f0d2780d0acf30e025a06e36efa49e1662243cee6e6fcf759a39792a9fe7ef80d1e6f98cfe8d489412101e2c32427f0c7fc22176b7edbe1c33b4f2493cdde8cb3f4a0a99724385b847012";
   uint32_t const GENESIS_NONCE = 10000;
 
-  struct HardForks {
-    uint8_t version;
-    uint64_t height;
-    uint8_t threshold;
-    time_t time;
-  };
-
-  static const std::vector<struct config::HardForks> hard_forks = {
-    // version 1 from the start of the blockchain
-    { 1, 1, 0, 1341378000 },
-  };
-
-  static const uint64_t hard_fork_version_1_till = 1009826;
+  static const uint64_t hard_fork_version_1_till = HARD_FORK_TILL_V1;
 
   namespace testnet
   {
@@ -198,10 +228,6 @@ namespace config
     */
     uint32_t const GENESIS_NONCE = 10001;
 
-    static const std::vector<struct config::HardForks> hard_forks = {
-      // version 1 from the start of the blockchain
-      { 1, 1, 0, 1341378000 },
-    };
     static const uint64_t hard_fork_version_1_till = 2;
   }
 

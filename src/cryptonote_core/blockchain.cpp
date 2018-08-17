@@ -32,6 +32,8 @@
 #include <cstdio>
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptor/reversed.hpp>
+#include "string_tools.h"
+using namespace epee;
 
 #include "include_base_utils.h"
 #include "cryptonote_basic/cryptonote_basic_impl.h"
@@ -80,11 +82,22 @@ DISABLE_VS_WARNINGS(4267)
 
 #define MERROR_VER(x) MCERROR("verify", x)
 
-/*static auto *mainnet_hard_forks = config::hard_forks;*/
-static const std::vector<struct config::HardForks> mainnet_hard_forks = config::hard_forks;
 static const uint64_t mainnet_hard_fork_version_1_till = config::hard_fork_version_1_till;
-static const std::vector<struct config::HardForks> testnet_hard_forks = config::hard_forks;
 static const uint64_t testnet_hard_fork_version_1_till = config::testnet::hard_fork_version_1_till;
+
+static const struct {
+  uint8_t version;
+  uint64_t height;
+  uint8_t threshold;
+  time_t time;
+} mainnet_hard_forks[] = MAINNET_HARD_FORKS;
+
+static const struct {
+  uint8_t version;
+  uint64_t height;
+  uint8_t threshold;
+  time_t time;
+} testnet_hard_forks[] = TESTNET_HARD_FORKS;
 
 /*
 static const struct {
@@ -374,16 +387,19 @@ bool Blockchain::init(BlockchainDB* db, const network_type nettype, bool offline
   }
   else if (m_nettype == TESTNET)
   {
+    MINFO("Testnet hard forks count: " << sizeof(testnet_hard_forks) / sizeof(testnet_hard_forks[0]));
     for (size_t n = 0; n < sizeof(testnet_hard_forks) / sizeof(testnet_hard_forks[0]); ++n)
       m_hardfork->add_fork(testnet_hard_forks[n].version, testnet_hard_forks[n].height, testnet_hard_forks[n].threshold, testnet_hard_forks[n].time);
   }
   else if (m_nettype == STAGENET)
   {
+    MINFO("Stagenet hard forks count: " << sizeof(stagenet_hard_forks) / sizeof(stagenet_hard_forks[0]));
     for (size_t n = 0; n < sizeof(stagenet_hard_forks) / sizeof(stagenet_hard_forks[0]); ++n)
       m_hardfork->add_fork(stagenet_hard_forks[n].version, stagenet_hard_forks[n].height, stagenet_hard_forks[n].threshold, stagenet_hard_forks[n].time);
   }
   else
   {
+    MINFO("Mainnet hard forks count: " << sizeof(mainnet_hard_forks) / sizeof(mainnet_hard_forks[0]));
     for (size_t n = 0; n < sizeof(mainnet_hard_forks) / sizeof(mainnet_hard_forks[0]); ++n)
       m_hardfork->add_fork(mainnet_hard_forks[n].version, mainnet_hard_forks[n].height, mainnet_hard_forks[n].threshold, mainnet_hard_forks[n].time);
   }
@@ -3082,6 +3098,8 @@ uint64_t Blockchain::get_dynamic_per_kb_fee(uint64_t block_reward, size_t median
     median_block_size = min_block_size;
 
   uint64_t unscaled_fee_per_kb = (fee_per_kb_base * min_block_size / median_block_size);
+  MDEBUG("unscaled_fee_per_kb " << print_money(unscaled_fee_per_kb));
+
   uint64_t hi, lo = mul128(unscaled_fee_per_kb, block_reward, &hi);
   // static_assert(DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD % 1000000 == 0, "DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD must be divisible by 1000000");
   // static_assert(DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD / 1000000 <= std::numeric_limits<uint32_t>::max(), "DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD is too large");
@@ -3118,6 +3136,7 @@ bool Blockchain::check_fee(size_t blob_size, uint64_t fee) const
     uint64_t base_reward;
     if (!get_block_reward(median, 1, already_generated_coins, base_reward, version))
       return false;
+    MDEBUG("Base reward " << print_money(base_reward));
     fee_per_kb = get_dynamic_per_kb_fee(base_reward, median, version);
   }
   MDEBUG("Using " << print_money(fee_per_kb) << "/kB fee");
@@ -4010,6 +4029,10 @@ uint64_t Blockchain::prevalidate_block_hashes(uint64_t height, const std::vector
       // add to the known hashes array
       if (!valid)
       {
+        std::string hash_str = string_tools::buff_to_hex_nodelimer(hash.data);
+        std::string m_blocks_hash_of_hashes_str = string_tools::buff_to_hex_nodelimer(m_blocks_hash_of_hashes[n].data);
+        LOG_ERROR(hash_str);
+        LOG_ERROR(m_blocks_hash_of_hashes_str);
         MDEBUG("invalid hash for blocks " << n * HASH_OF_HASHES_STEP << " - " << (n * HASH_OF_HASHES_STEP + HASH_OF_HASHES_STEP - 1));
         break;
       }
@@ -4543,7 +4566,10 @@ void Blockchain::cancel()
 }
 
 #if defined(PER_BLOCK_CHECKPOINT)
+/*
 static const char expected_block_hashes_hash[] = "0924bc1c47aae448321fde949554be192878dd800e6489379865218f84eacbca";
+*/
+static const char expected_block_hashes_hash[] = "4b553162ee4e7af3c53666506591489c68560b9175e6e941dc96c89f96f0e35c";
 void Blockchain::load_compiled_in_block_hashes()
 {
   const bool testnet = m_nettype == TESTNET;
